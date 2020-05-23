@@ -1,0 +1,36 @@
+#grid {
+	width: 200px;
+	height: 400px;
+	background-color: yellow;
+	display: flex;
+	flex-wrap: wrap;
+}
+
+#grid div {
+	width: 20px;
+	height: 20px;
+}
+
+.tetramino {
+	background-color: blue;
+}
+
+.taken {}
+
+#grid-container {
+	display: flex;
+}
+
+#mini-grid {
+	margin-left: 20px;
+	height: 80px;
+	width: 80px;
+	display: flex;
+	flex-wrap: wrap;
+	background-color: yellow;
+}
+
+#mini-grid div {
+	width: 20px;
+	height: 20px;
+}
