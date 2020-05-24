@@ -1,20 +1,27 @@
+body {
+	background-color: #3AAFA9;
+	padding: 50px;
+}
+
 #grid {
 	padding: 5px;
 	width: 220px;
 	height: 440px;
-	background-color: yellow;
+	background-color: #2b7a78;
 	display: flex;
 	flex-wrap: wrap;
+	border-radius: 5px; 
 }
 
 #grid div {
 	margin: 1px;
 	width: 20px;
 	height: 20px;
+	border-radius: 3px; 
 }
 
 .tetramino-part {
-	background-color: blue;
+	background-color: #FEFFFF;
 }
 
 .taken {}
@@ -37,24 +44,32 @@
 	width: 88px;
 	display: flex;
 	flex-wrap: wrap;
-	background-color: yellow;
+	background-color: #2b7a78;
+	border-radius: 5px; 
 }
 
 #mini-grid div {
 	margin: 1px;
 	width: 20px;
 	height: 20px;
+	border-radius: 3px; 
 }
 
 #start-button {
 	width: 98px;
 	margin-bottom: 5px;
+	background-color: #2b7a78;
+	border-color: #2b7a78;
 }
 
-#score-text-container {
-	background-color: yellow;
+.text {
 	text-align: center;
 	font-size: 0.7em;
 	font-family: 'Press Start 2P', cursive;
+}
+
+#score-text-container {
+	background-color: #2b7a78;
 	margin-bottom: 5px;
+	border-radius: 5px; 
 }
