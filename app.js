@@ -20,13 +20,21 @@ document.addEventListener('DOMContentLoaded', () => {
   var currentTetramino
   var nextRandomIndex = randomIndex(theTetrominoes)
 
-	var squares 			  = Array.from(document.querySelectorAll('#grid div'))
+	var mainGridSquares = Array.from(document.querySelectorAll('#grid div'))
 	var miniGridSquares = Array.from(document.querySelectorAll('#mini-grid div'))
 
   function displayPreview() {
   	clearGrid(miniGridSquares)
-  	tetrominoPreviews[nextRandomIndex].forEach( index => miniGridSquares[index].classList.add('tetramino') )
-  }
+  	nextTetramino().forEach( index => drawPart(index, miniGridSquares) )
+	}
+
+	function drawPart(index, squares) {
+		squares[index].classList.add('tetramino-part')
+	}
+	
+	function nextTetramino() {
+		return tetrominoPreviews[nextRandomIndex]
+	}
 
   function randomIndex(array) {
   	return Math.floor(Math.random() * array.length)
@@ -40,38 +48,54 @@ document.addEventListener('DOMContentLoaded', () => {
 		currentPosition    = 4
   }
 
-  function draw() {
+  function drawTetramino() {
   	currentTetramino.forEach(index => {
-  		squares[currentPosition + index].classList.add('tetramino')
+  		drawPart(index + currentPosition, mainGridSquares)
   	})
   }
 
-  function undraw() {
+  function undrawTetramino() {
   	currentTetramino.forEach(index => {
-  		squares[currentPosition + index].classList.remove('tetramino')
+  		undrawPart(index + currentPosition, mainGridSquares)
   	})
-  }
+	}
+	
+	function undrawPart(index, squares) {
+		squares[index].classList.remove('tetramino-part')
+	}
 
   function moveDown() {
-  	undraw()
-  	currentPosition += GRID_WIDTH
-  	draw()
-  	if(collisionDetected()) { freeze() }
-  }
+  	undrawTetramino()
+  	incrementPosition()
+  	drawTetramino()
+  	if(collision()) { freeze() }
+	}
+	
+	function incrementPosition() {
+		currentPosition += GRID_WIDTH
+	}
 
-	function collisionDetected() {
-		return nextSqaures().some(sqaure => sqaure.classList.contains('taken'))
+	function collision() {
+		return nextSqaures().some(square => occupied(square))
+	}
+
+	function occupied(sqaure) {
+		return sqaure.classList.contains('taken')
 	}
 
 	function nextSqaures() {
-		return currentTetramino.map(index => squares[currentPosition + index + GRID_WIDTH])
+		return currentTetramino.map(index => mainGridSquares[currentPosition + index + GRID_WIDTH])
+	}
+
+	function freezePart(index) {
+		mainGridSquares[currentPosition + index].classList.add('taken')
 	}
 
   function freeze() {
-		currentTetramino.forEach(index => squares[currentPosition + index].classList.add('taken'))
+		currentTetramino.forEach(index => freezePart(index))
 		setNextTetramino()
 		displayPreview()
-		draw()
+		drawTetramino()
 		addScore()
 		gameOver()
   }
@@ -88,66 +112,103 @@ document.addEventListener('DOMContentLoaded', () => {
   	}
   }
 
-  document.addEventListener('keydown', control)
+	document.addEventListener('keydown', control)
+	
+	function notAtLeftEdge(index) {
+		return (currentPosition + index) % GRID_WIDTH != 0
+	}
 
+	function notAtRightEdge(index) {
+		return (currentPosition + index) % GRID_WIDTH != GRID_WIDTH - 1
+	}
+
+	function spaceOnLeft() {
+		return currentTetramino.every(index => notAtLeftEdge(index))
+	}
+
+	function spaceOnRight() {
+		return currentTetramino.every(index => notAtRightEdge(index))
+	}
+	
   function moveLeft() {
-  	undraw()
-  	const atLeftEdge = currentTetramino.some(index => (currentPosition + index) % GRID_WIDTH === 0)
-  	if(!atLeftEdge) currentPosition -=1
-  	if(currentTetramino.some(index => squares[currentPosition + index].classList.contains('taken'))) {
+		undrawTetramino()
+  	if(spaceOnLeft()) currentPosition -=1
+  	if(currentSquares().some(square => occupied(square))) {
   		currentPosition +=1
   	}
-  	draw()
-  }
+  	drawTetramino()
+	}
+	
+	function currentSquares() {
+		return currentTetramino.map(index => mainGridSquares[currentPosition + index])
+	}
 
   function moveRight() {
-  	undraw()
-  	const atRightEdge = currentTetramino.some(index => (currentPosition + index) % GRID_WIDTH === GRID_WIDTH - 1)
-  	if(!atRightEdge) currentPosition +=1
-  	if(currentTetramino.some(index => squares[currentPosition + index].classList.contains('taken'))) {
+  	undrawTetramino()
+  	if(spaceOnRight()) currentPosition +=1
+  	if(currentSquares().some(square => occupied(square))) {
   		currentPosition -=1
   	}
-  	draw()
+  	drawTetramino()
   }
 
   function rotate() {
-  	undraw()
-  	currentRotation +=1
-  	if(currentRotation == 4) {
-  		currentRotation = 0
-  	}
+  	undrawTetramino()
+  	currentRotation = incrementRotation(currentRotation)
   	currentTetramino = theTetrominoes[currentRandomIndex][currentRotation]
-  	draw()
-  }
+  	drawTetramino()
+	}
+	
+	function incrementRotation(rotation) {
+  	if(rotation == 3) {
+  		return 0
+  	} else {
+			return rotation += 1
+		}
+	}
+
+	function udpateGrid(square) {
+		grid.appendChild(square)
+	}
 
   function addScore() {
   	for (i = 0; i < 199; i += GRID_WIDTH) {
   		
   		const row = [i, i+1, i+2, i+3, i+4, i+5, i+6, i+7, i+8, i+9]
 
-  		if (row.every(index => squares[index].classList.contains('taken'))) {
-  			score += 10
-  			SCORE_DISPLAY.innerHTML = score
-  			row.forEach(index => { squares[index].classList.remove('taken') })
-  			row.forEach(index => { squares[index].classList.remove('tetramino') })
-  			removedSquares = squares.splice(i, GRID_WIDTH)
-  			squares = removedSquares.concat(squares)
-  			squares.forEach(square => grid.appendChild(square))
+  		if (row.every(index => occupied(mainGridSquares[index]))) {
+  			incrementScore(10)
+  			row.forEach(index => { clearSquare(mainGridSquares[index]) })
+  			shiftRow(i)
   		}
   	}
-  }
+	}
+
+	function shiftRow(i) {
+		mainGridSquares  = mainGridSquares.splice(i, GRID_WIDTH).concat(mainGridSquares)
+		mainGridSquares.forEach(square => udpateGrid(square))
+	}
+	
+	function incrementScore(points) {
+		score += points
+		SCORE_DISPLAY.innerHTML = score
+	}
 
   function gameOver() {
-  	if(currentTetramino.some(index => squares[currentPosition + index].classList.contains('taken'))) {
+  	if(currentTetramino.some(index => occupied(mainGridSquares[currentPosition + index]))) {
   		clearInterval(timerId)
-  		clearGrid(squares)
+  		clearGrid(mainGridSquares)
   		gameRunning = false
   	}
   }
 
   function clearGrid(gridSquares) {
-  	gridSquares.slice(0,200).forEach( square => square.classList.remove(...square.classList))
-  }
+  	gridSquares.slice(0,200).forEach( square => clearSquare(square))
+	}
+	
+	function clearSquare(square) {
+		square.classList.remove(...square.classList)
+	}
 
 	START_BUTTON.addEventListener('click', startOrPause)
 
