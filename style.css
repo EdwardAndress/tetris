@@ -21,6 +21,7 @@
 
 #game-container {
 	display: flex;
+	justify-content: center;
 }
 
 #dashboard {
@@ -47,8 +48,13 @@
 
 #start-button {
 	width: 98px;
+	margin-bottom: 5px;
 }
 
-.text {
+#score-text-container {
+	background-color: yellow;
+	text-align: center;
+	font-size: 0.7em;
 	font-family: 'Press Start 2P', cursive;
+	margin-bottom: 5px;
 }
