@@ -5,18 +5,19 @@
 	<meta charset="utf-8">
 	<script src="tetraminoes.js" charset="utf-8"></script>
 	<script src="app.js" charset="utf-8"></script>
-	 <link rel="stylesheet" href="style.css"></link>
+	<link rel="stylesheet" href="style.css"></link>
+	<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 	<title>PetaTetris</title>
 </head>
 
 <body>
-
-	<h3>Score:<span id="score">0</span></h3>
-	<button id="start-button">Start</button>
-
-	<div id='grid-container'>
+	<div id='game-container'>
 		<div id="grid"></div>
-		<div id="mini-grid"></div>
+		<div id="dashboard">
+			<div class="text"><h3>Score:<span id="score">0</span></h3></div>
+			<button class="text" id="start-button">Start</button>
+			<div id="mini-grid"></div>
+		</div>
 	</div>
 	</body>
 </html>

@@ -1,12 +1,14 @@
 #grid {
-	width: 200px;
-	height: 400px;
+	padding: 5px;
+	width: 220px;
+	height: 440px;
 	background-color: yellow;
 	display: flex;
 	flex-wrap: wrap;
 }
 
 #grid div {
+	margin: 1px;
 	width: 20px;
 	height: 20px;
 }
@@ -17,20 +19,36 @@
 
 .taken {}
 
-#grid-container {
+#game-container {
 	display: flex;
 }
 
-#mini-grid {
+#dashboard {
 	margin-left: 20px;
-	height: 80px;
-	width: 80px;
+	display: flex;
+	flex-direction: column;
+	justify-content: stretch;
+}
+
+#mini-grid {
+	padding: 5px;
+	height: 88px;
+	width: 88px;
 	display: flex;
 	flex-wrap: wrap;
 	background-color: yellow;
 }
 
 #mini-grid div {
+	margin: 1px;
 	width: 20px;
 	height: 20px;
+}
+
+#start-button {
+	width: 98px;
+}
+
+.text {
+	font-family: 'Press Start 2P', cursive;
 }
