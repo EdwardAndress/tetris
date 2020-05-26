@@ -1,12 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+
+	
   const GRID_WIDTH 			= 10
+  const GRID_HEIGHT			= 22
   const MINI_GRID_WIDTH = 4
 	const SCORE_DISPLAY 	= document.querySelector('#score')
 	const START_BUTTON 		=	document.querySelector('#start-button')
 
-	let grid 							= createGrid("#grid", 210)
-	let miniGrid 					= createGrid("#mini-grid", 16)
+
+	let grid 							= createGrid({container_id: "#grid", height: GRID_HEIGHT, width: GRID_WIDTH})
+	let miniGrid 					= createGrid({container_id: "#mini-grid", height: 4, width: MINI_GRID_WIDTH, preview: true})
 	let theTetrominoes 		= buildTetraminoes(GRID_WIDTH)
 	let tetrominoPreviews = buildTetraminoes(MINI_GRID_WIDTH, preview=true)
 
@@ -44,7 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
   	currentRotation 	 = 0
   	currentRandomIndex = nextRandomIndex 
 		nextRandomIndex 	 = randomIndex(theTetrominoes)
-		currentTetramino 	 = theTetrominoes[currentRandomIndex][currentRotation]  				
+		currentTetramino 	 = theTetrominoes[currentRandomIndex][currentRotation]
+
 		currentPosition    = 4
   }
 
@@ -172,7 +177,10 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
   function addScore() {
-  	for (i = 0; i < 199; i += GRID_WIDTH) {
+  	// TODO: tidy this up!
+  	const LAST_VISIBLE_SQUARE = ((GRID_WIDTH * GRID_HEIGHT) - GRID_WIDTH) - 1
+
+  	for (i = 0; i < LAST_VISIBLE_SQUARE; i += GRID_WIDTH) {
   		
   		const row = [i, i+1, i+2, i+3, i+4, i+5, i+6, i+7, i+8, i+9]
 
@@ -203,7 +211,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function clearGrid(gridSquares) {
-  	gridSquares.slice(0,200).forEach( square => clearSquare(square))
+  	// probably needs refactoring
+  	gridSquares.slice(0,GRID_WIDTH * GRID_HEIGHT).forEach( square => clearSquare(square))
 	}
 	
 	function clearSquare(square) {
@@ -225,13 +234,23 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 })
 
-function createGrid(selector, limit) {
+function createGrid(properties) {
+	// TODO tidy this up!
+	container_id = properties['container_id']
+	height 			 = properties['height']
+	width 			 = properties['width']
+	preview 		 = properties['preview']
 
-	container = document.querySelector(selector)
+	container = document.querySelector(container_id)
+	container.style.height = preview ? `${height * 22}px` : `${(height - 1) * 22}px`
+	container.style.width  = `${width * 22}px`
+	total_sqaures    = height * width
+	hidden_row_start = total_sqaures - width
 
-	for (i = 0; i < limit; i++) {
+	for (i = 1; i <= total_sqaures; i++) {
 		let newDiv = document.createElement("div")
-		if(i > 199) { newDiv.classList.add('taken') }
+
+		if(i > hidden_row_start && !preview) { newDiv.classList.add('taken')}
 		container.appendChild(newDiv)
 	}
 
