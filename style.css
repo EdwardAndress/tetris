@@ -34,7 +34,7 @@ body {
 	justify-content: stretch;
 }
 
-#mini-grid {
+#preview {
 	padding: 5px;
 	height: 88px;
 	width: 88px;
@@ -44,7 +44,7 @@ body {
 	border-radius: 5px; 
 }
 
-#mini-grid div {
+#preview div {
 	margin: 1px;
 	width: 20px;
 	height: 20px;

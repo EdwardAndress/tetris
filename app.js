@@ -1,18 +1,21 @@
 document.addEventListener('DOMContentLoaded', () => {
+	 
+	// TODO: look at scope of vars
 
-
-	
   const GRID_WIDTH 			= 10
-  const GRID_HEIGHT			= 22
-  const MINI_GRID_WIDTH = 4
+	const GRID_HEIGHT			= 22
+	const GRID_SIZE 			= GRID_HEIGHT * GRID_WIDTH
+	const PREVIEW_WIDTH   = 4
+	const PREVIEW_HEIGHT	= 4
 	const SCORE_DISPLAY 	= document.querySelector('#score')
 	const START_BUTTON 		=	document.querySelector('#start-button')
 
 
-	let grid 							= createGrid({container_id: "#grid", height: GRID_HEIGHT, width: GRID_WIDTH})
-	let miniGrid 					= createGrid({container_id: "#mini-grid", height: 4, width: MINI_GRID_WIDTH, preview: true})
+	// TODO: implement sensible defaults for createGrid
+	let grid 							= createGrid({id: "#grid", height: GRID_HEIGHT, width: GRID_WIDTH})
+	let preview 					= createGrid({id: "#preview", height: PREVIEW_HEIGHT, width: PREVIEW_WIDTH, preview: true})
 	let theTetrominoes 		= buildTetraminoes(GRID_WIDTH)
-	let tetrominoPreviews = buildTetraminoes(MINI_GRID_WIDTH, preview=true)
+	let tetrominoPreviews = buildTetraminoes(PREVIEW_WIDTH, preview=true)
 
 	let timerId
 	let score = 0
@@ -24,12 +27,13 @@ document.addEventListener('DOMContentLoaded', () => {
   var currentTetramino
   var nextRandomIndex = randomIndex(theTetrominoes)
 
-	var mainGridSquares = Array.from(document.querySelectorAll('#grid div'))
-	var miniGridSquares = Array.from(document.querySelectorAll('#mini-grid div'))
+	var gridSquares = Array.from(document.querySelectorAll('#grid div'))
+	var rows = _.chunk(gridSquares, GRID_WIDTH)
+	var previewSquares = Array.from(document.querySelectorAll('#preview div'))
 
   function displayPreview() {
-  	clearGrid(miniGridSquares)
-  	nextTetramino().forEach( index => drawPart(index, miniGridSquares) )
+  	clearGrid(previewSquares)
+  	nextTetramino().forEach( index => drawPart(index, previewSquares) )
 	}
 
 	function drawPart(index, squares) {
@@ -55,13 +59,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function drawTetramino() {
   	currentTetramino.forEach(index => {
-  		drawPart(index + currentPosition, mainGridSquares)
+  		drawPart(index + currentPosition, gridSquares)
   	})
   }
 
   function undrawTetramino() {
   	currentTetramino.forEach(index => {
-  		undrawPart(index + currentPosition, mainGridSquares)
+  		undrawPart(index + currentPosition, gridSquares)
   	})
 	}
 	
@@ -84,16 +88,20 @@ document.addEventListener('DOMContentLoaded', () => {
 		return nextSqaures().some(square => occupied(square))
 	}
 
-	function occupied(sqaure) {
-		return sqaure.classList.contains('taken')
+	function occupied(square) {
+		return square.classList.contains('taken')
+	}
+
+	function visible(square) {
+		return !square.classList.contains('hidden')
 	}
 
 	function nextSqaures() {
-		return currentTetramino.map(index => mainGridSquares[currentPosition + index + GRID_WIDTH])
+		return currentTetramino.map(index => gridSquares[currentPosition + index + GRID_WIDTH])
 	}
 
 	function freezePart(index) {
-		mainGridSquares[currentPosition + index].classList.add('taken')
+		gridSquares[currentPosition + index].classList.add('taken')
 	}
 
   function freeze() {
@@ -145,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 	
 	function currentSquares() {
-		return currentTetramino.map(index => mainGridSquares[currentPosition + index])
+		return currentTetramino.map(index => gridSquares[currentPosition + index])
 	}
 
   function moveRight() {
@@ -158,6 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function rotate() {
+		// TODO: prevent rotation wrapping
   	undrawTetramino()
   	currentRotation = incrementRotation(currentRotation)
   	currentTetramino = theTetrominoes[currentRandomIndex][currentRotation]
@@ -176,25 +185,32 @@ document.addEventListener('DOMContentLoaded', () => {
 		grid.appendChild(square)
 	}
 
-  function addScore() {
-  	// TODO: tidy this up!
-  	const LAST_VISIBLE_SQUARE = ((GRID_WIDTH * GRID_HEIGHT) - GRID_WIDTH) - 1
-
-  	for (i = 0; i < LAST_VISIBLE_SQUARE; i += GRID_WIDTH) {
-  		
+	function addScore() {
+  	for (i = 0; i < GRID_SIZE; i += GRID_WIDTH) {
   		const row = [i, i+1, i+2, i+3, i+4, i+5, i+6, i+7, i+8, i+9]
 
-  		if (row.every(index => occupied(mainGridSquares[index]))) {
+  		if (completeRow(row)) {
   			incrementScore(10)
-  			row.forEach(index => { clearSquare(mainGridSquares[index]) })
+  			clearRow(row)
   			shiftRow(i)
   		}
   	}
 	}
 
+	function clearRow(row) {
+		row.forEach(index => { clearSquare(gridSquares[index]) })
+	}
+
+	function completeRow(row) {
+		return row.every(index =>
+			occupied(gridSquares[index]) &&
+			visible(gridSquares[index])
+		)
+	}
+
 	function shiftRow(i) {
-		mainGridSquares  = mainGridSquares.splice(i, GRID_WIDTH).concat(mainGridSquares)
-		mainGridSquares.forEach(square => udpateGrid(square))
+		gridSquares  = gridSquares.splice(i, GRID_WIDTH).concat(gridSquares)
+		gridSquares.forEach(square => udpateGrid(square))
 	}
 	
 	function incrementScore(points) {
@@ -203,15 +219,14 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
   function gameOver() {
-  	if(currentTetramino.some(index => occupied(mainGridSquares[currentPosition + index]))) {
+  	if(currentTetramino.some(index => occupied(gridSquares[currentPosition + index]))) {
   		clearInterval(timerId)
-  		clearGrid(mainGridSquares)
+  		clearGrid(gridSquares)
   		gameRunning = false
   	}
   }
 
   function clearGrid(gridSquares) {
-  	// probably needs refactoring
   	gridSquares.slice(0,GRID_WIDTH * GRID_HEIGHT).forEach( square => clearSquare(square))
 	}
 	
@@ -235,22 +250,22 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 
 function createGrid(properties) {
-	// TODO tidy this up!
-	container_id = properties['container_id']
-	height 			 = properties['height']
-	width 			 = properties['width']
-	preview 		 = properties['preview']
+	// TODO: tidy this up!
+	id 			= properties['id']
+	height 	= properties['height']
+	width   = properties['width']
+	preview = properties['preview']
 
-	container = document.querySelector(container_id)
+	container = document.querySelector(id)
 	container.style.height = preview ? `${height * 22}px` : `${(height - 1) * 22}px`
 	container.style.width  = `${width * 22}px`
-	total_sqaures    = height * width
-	hidden_row_start = total_sqaures - width
+	total_squares    = height * width
+	hidden_row_start = total_squares - width
 
-	for (i = 1; i <= total_sqaures; i++) {
+	for (i = 1; i <= total_squares; i++) {
 		let newDiv = document.createElement("div")
 
-		if(i > hidden_row_start && !preview) { newDiv.classList.add('taken')}
+		if(i > hidden_row_start && !preview) { newDiv.classList.add('taken', 'hidden')}
 		container.appendChild(newDiv)
 	}
 
